@@ -10,7 +10,6 @@ from aiogram.fsm.context import FSMContext
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
 
 # --- НАСТРОЙКИ ---
-# На Render токен и ID будут браться из переменных окружения (Environment Variables)
 BOT_TOKEN = os.getenv("BOT_TOKEN", "8625421904:AAH14yjEvbyzS7O4emoUCm86ZRNsmQmctVc")
 ADMIN_ID = int(os.getenv("ADMIN_ID", 6269035045))
 SERVER_URL = os.getenv("SERVER_URL", "http://127.0.0.1:5001")
@@ -20,7 +19,6 @@ CARD_HOLDER = "SUXROB MUXITDINOV"
 PRICE_JARVIS = "50 000 сум"
 PRICE_VIDEO = "150 000 сум"
 
-# ССЫЛКИ НА СКАЧИВАНИЕ
 DOWNLOAD_LINK_MAC = "https://cloud.mail.ru/public/roXA/h3fW4CHim"
 DOWNLOAD_LINK_AF = "https://cloud.mail.ru/public/uFfh/F7AGTyqCx"
 
@@ -43,12 +41,13 @@ class OrderForm(StatesGroup):
 async def start_handler(message: types.Message):
     kb = types.InlineKeyboardMarkup(inline_keyboard=[
         [types.InlineKeyboardButton(text="💡 Что умеет Jarvis", callback_data="about")],
-        [types.InlineKeyboardButton(text=f"💳 Купить Jarvis — {PRICE_JARVIS}", callback_data="buy_jarvis")],
-        [types.InlineKeyboardButton(text=f"🎬 AFTER EFECTS PRO — {PRICE_VIDEO}", callback_data="buy_video")],
+        [types.InlineKeyboardButton(text=f"💳 Купить Jarvis (для Mac) — {PRICE_JARVIS}", callback_data="buy_jarvis")],
+        [types.InlineKeyboardButton(text=f"🎬 AFTER EFECTS PRO (для Mac) — {PRICE_VIDEO}", callback_data="buy_video")],
         [types.InlineKeyboardButton(text="🆘 Поддержка", callback_data="support")]
     ])
     await message.answer(
         "👋 Привет! Я — бот для покупки цифровых продуктов.\n\n"
+        "⚠️ **ВНИМАНИЕ: Все программы работают ТОЛЬКО на macOS (MacBook, iMac).**\n\n"
         "Доступно:\n"
         f"🤖 **Jarvis** — твой AI-ассистент ({PRICE_JARVIS})\n"
         f"🎬 **AFTER EFECTS PRO** — мощная программа для монтажа и эффектов ({PRICE_VIDEO})\n\n"
@@ -99,12 +98,13 @@ async def handle_support(message: types.Message, state: FSMContext):
 @dp.callback_query(lambda c: c.data == "buy_jarvis")
 async def process_buy_jarvis(callback: types.CallbackQuery):
     kb = types.InlineKeyboardMarkup(inline_keyboard=[
-        [types.InlineKeyboardButton(text="✅ Я понял", callback_data="understood_jarvis")]
+        [types.InlineKeyboardButton(text="✅ Я понял, у меня Mac", callback_data="understood_jarvis")]
     ])
     await callback.message.answer(
-        "📝 **Важно перед оплатой:**\n\n"
-        "Чтобы мы знали, кто именно оплатил, тебе нужно указать свой "
-        "**юзернейм** или **Telegram ID**.\n\n"
+        "⚠️ **ВНИМАНИЕ!**\n"
+        "Эта программа предназначена **ТОЛЬКО для Mac**.\n"
+        "На Windows она не запустится!\n\n"
+        "Чтобы мы знали, кто именно оплатил, тебе нужно указать свой **юзернейм** или **Telegram ID**.\n\n"
         "Нажми «Я понял», чтобы продолжить.",
         reply_markup=kb
     )
@@ -160,12 +160,13 @@ async def handle_screenshot_jarvis(message: types.Message, state: FSMContext):
 @dp.callback_query(lambda c: c.data == "buy_video")
 async def process_buy_video(callback: types.CallbackQuery):
     kb = types.InlineKeyboardMarkup(inline_keyboard=[
-        [types.InlineKeyboardButton(text="✅ Я понял", callback_data="understood_video")]
+        [types.InlineKeyboardButton(text="✅ Я понял, у меня Mac", callback_data="understood_video")]
     ])
     await callback.message.answer(
-        "📝 **Важно перед оплатой:**\n\n"
-        "Чтобы мы знали, кто именно оплатил, тебе нужно указать свой "
-        "**юзернейм** или **Telegram ID**.\n\n"
+        "⚠️ **ВНИМАНИЕ!**\n"
+        "Этот видеоредактор предназначен **ТОЛЬКО для Mac**.\n"
+        "На Windows он не запустится!\n\n"
+        "Чтобы мы знали, кто именно оплатил, тебе нужно указать свой **юзернейм** или **Telegram ID**.\n\n"
         "Нажми «Я понял», чтобы продолжить.",
         reply_markup=kb
     )
@@ -227,7 +228,7 @@ async def confirm_jarvis(message: types.Message):
             chat_id=buyer_id,
             text=(
                 "✅ **Оплата Jarvis подтверждена!**\n\n"
-                f"📥 **Скачай по ссылке:**\n{DOWNLOAD_LINK_MAC}\n\n"
+                f"📥 **Скачай по ссылке (только для Mac):**\n{DOWNLOAD_LINK_MAC}\n\n"
                 "**📖 ИНСТРУКЦИЯ:**\n"
                 "1. Скачай и распакуй архив.\n"
                 "2. Запусти `JarvisLoader.app`.\n"
@@ -250,7 +251,7 @@ async def confirm_video(message: types.Message):
             chat_id=buyer_id,
             text=(
                 "✅ **Оплата видеоредактора подтверждена!**\n\n"
-                f"📥 **Скачай программу по ссылке:**\n{DOWNLOAD_LINK_AF}\n\n"
+                f"📥 **Скачай программу по ссылке (только для Mac):**\n{DOWNLOAD_LINK_AF}\n\n"
                 "**📖 ИНСТРУКЦИЯ:**\n"
                 "1. Перейди по ссылке и скачай файл.\n"
                 "2. Распакуй архив.\n"
@@ -302,7 +303,6 @@ def main():
     dp.startup.register(on_startup)
     dp.shutdown.register(on_shutdown)
 
-    # Эндпоинт для UptimeRobot (чтобы Render не засыпал)
     async def health(request):
         return web.Response(text="OK")
 
