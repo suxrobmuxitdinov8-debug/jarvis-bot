@@ -264,21 +264,36 @@ async def confirm_video(message: types.Message):
         await message.answer(f"Ошибка: {e}")
 
 
-# --- ПРИВЯЗКА HWID ---
+# --- ПРИВЯЗКА HWID (С ОЖИДАНИЕМ ПРОСЫПАНИЯ СЕРВЕРА) ---
 @dp.message()
 async def handle_hwid(message: types.Message):
     text = message.text.strip()
     if text.isdigit() and len(text) > 10:
         hwid = text
+
+        # Отправляем сообщение, чтобы пользователь не думал, что бот завис
+        wait_msg = await message.answer(
+            "⏳ Проверяю и привязываю HWID. Если сервер спал, это может занять до 1 минуты. Пожалуйста, подожди...")
+
         try:
-            response = requests.post(f"{SERVER_URL}/add", json={"hwid": hwid}, timeout=10)
+            # Увеличиваем таймаут до 60 секунд, чтобы сервер успел проснуться
+            response = requests.post(f"{SERVER_URL}/add", json={"hwid": hwid}, timeout=60)
+
             if response.status_code == 200:
+                await wait_msg.delete()  # Удаляем сообщение об ожидании
                 await message.answer("✅ Твой компьютер привязан!\n\nТеперь запусти `JarvisLoader.app` снова.")
                 await bot.send_message(chat_id=ADMIN_ID,
                                        text=f"🔔 Пользователь {message.from_user.id} добавил HWID: {hwid}")
             else:
+                await wait_msg.delete()
                 await message.answer("❌ Ошибка сервера. Попробуй позже.")
+
+        except requests.exceptions.Timeout:
+            await wait_msg.delete()
+            await message.answer(
+                "❌ Сервер долго не отвечает. Пожалуйста, попробуй отправить HWID еще раз через минуту.")
         except Exception as e:
+            await wait_msg.delete()
             await message.answer(f"❌ Ошибка соединения с сервером: {e}")
 
 
